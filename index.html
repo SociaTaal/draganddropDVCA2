@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Drag & Drop Oefening</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f7f7f7;
+            color: #333;
+            text-align: center;
+            padding: 20px;
+        }
+
+        h1 {
+            color: #64906d;
+        }
+
+        p {
+            margin-bottom: 20px;
+            font-size: 1.2em;
+        }
+
+        #words {
+            margin-bottom: 30px;
+        }
+
+        .word {
+            margin: 5px;
+            padding: 10px 15px;
+            background-color: #ffb03b;
+            border: 2px solid #ffb03b;
+            border-radius: 20px;
+            color: white;
+            font-weight: bold;
+            display: inline-block;
+            cursor: grab;
+            transition: all 0.2s ease-in-out;
+        }
+
+        .word:hover {
+            background-color: #ffa11c;
+            transform: scale(1.05);
+        }
+
+        .category {
+            border: 2px dashed #64906d;
+            border-radius: 10px;
+            background-color: #e6f1eb;
+            padding: 15px;
+            width: 220px;
+            min-height: 60px;
+            margin: 15px;
+            display: inline-block;
+            vertical-align: top;
+            text-align: center;
+            font-size: 1em;
+            color: #64906d;
+            font-weight: bold;
+            transition: height 0.2s ease-in-out, background-color 0.2s ease-in-out;
+            overflow: hidden;
+        }
+
+        .category:hover {
+            background-color: #d7e7df;
+        }
+
+        .category:empty {
+            color: #aaa;
+            font-weight: normal;
+            font-style: italic;
+        }
+
+        .category > .word {
+            display: block;
+            margin: 5px auto;
+        }
+
+        #submit-btn {
+            margin-top: 20px;
+            padding: 10px 20px;
+            font-size: 1.2em;
+            color: white;
+            background-color: #64906d;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+        }
+
+        #submit-btn:hover {
+            background-color: #4d7055;
+        }
+
+        #feedback {
+            margin-top: 20px;
+            padding: 20px;
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+            border-radius: 10px;
+            display: none;
+        }
+
+        #feedback.correct {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+    </style>
+</head>
+<body>
+    <h1>Drag & Drop Oefening</h1>
+    <p>Sleep de woorden naar de juiste categorie en klik op "Verzend" om te controleren.</p>
+
+    <div id="words">
+        <div class="word" draggable="true">kraampjes</div>
+        <div class="word" draggable="true">lokale producten</div>
+        <div class="word" draggable="true">levendig</div>
+        <div class="word" draggable="true">Oud</div>
+        <div class="word" draggable="true">Groot gebouw</div>
+        <div class="word" draggable="true">Rustig</div>
+        <div class="word" draggable="true">Ontspannend</div>
+        <div class="word" draggable="true">Wandelen</div>
+        <div class="word" draggable="true">Boek lezen</div>
+        <div class="word" draggable="true">Druk</div>
+        <div class="word" draggable="true">Kleding</div>
+        <div class="word" draggable="true">Boek kopen</div>
+        <div class="word" draggable="true">Boek lenen</div>
+        <div class="word" draggable="true">Koffie halen</div>
+        <div class="word" draggable="true">Prachtig</div>
+        <div class="word" draggable="true">Boten</div>
+    </div>
+
+    <div id="categories">
+        <div class="category" data-category="de markt">De Markt</div>
+        <div class="category" data-category="het stadhuis">Het Stadhuis</div>
+        <div class="category" data-category="het park">Het Park</div>
+        <div class="category" data-category="de winkelstraat">De Winkelstraat</div>
+        <div class="category" data-category="de bibliotheek">De Bibliotheek</div>
+        <div class="category" data-category="de pauze">De Pauze</div>
+        <div class="category" data-category="de haven">De Haven</div>
+    </div>
+
+    <button id="submit-btn">Verzend</button>
+
+    <div id="feedback"></div>
+
+    <script>
+        const words = document.querySelectorAll('.word');
+        const categories = document.querySelectorAll('.category');
+        const wordContainer = document.getElementById('words');
+        const feedback = document.getElementById('feedback');
+        const submitBtn = document.getElementById('submit-btn');
+
+        // Correct answers
+        const correctAnswers = {
+            "de markt": ["kraampjes", "lokale producten", "levendig"],
+            "het stadhuis": ["Oud", "Groot gebouw"],
+            "het park": ["Rustig", "Ontspannend", "Wandelen", "Boek lezen"],
+            "de winkelstraat": ["Druk", "Kleding", "Boek kopen"],
+            "de bibliotheek": ["Boek lenen"],
+            "de pauze": ["Koffie halen"],
+            "de haven": ["Prachtig", "Boten"]
+        };
+
+        words.forEach(word => {
+            word.addEventListener('dragstart', () => {
+                word.classList.add('dragging');
+            });
+
+            word.addEventListener('dragend', () => {
+                word.classList.remove('dragging');
+                adjustCategoryHeights();
+            });
+        });
+
+        categories.forEach(category => {
+            category.addEventListener('dragover', e => {
+                e.preventDefault();
+            });
+
+            category.addEventListener('drop', e => {
+                const draggingWord = document.querySelector('.word.dragging');
+                if (draggingWord) {
+                    category.appendChild(draggingWord);
+                    adjustCategoryHeights();
+                }
+            });
+        });
+
+        wordContainer.addEventListener('dragover', e => {
+            e.preventDefault();
+        });
+
+        wordContainer.addEventListener('drop', e => {
+            const draggingWord = document.querySelector('.word.dragging');
+            if (draggingWord) {
+                wordContainer.appendChild(draggingWord);
+                adjustCategoryHeights();
+            }
+        });
+
+        function adjustCategoryHeights() {
+            categories.forEach(category => {
+                const wordsHeight = Array.from(category.children)
+                    .filter(child => child.classList.contains('word'))
+                    .reduce((total, word) => total + word.offsetHeight + 10, 0);
+                category.style.height = `${Math.max(60, wordsHeight)}px`;
+            });
+        }
+
+        submitBtn.addEventListener('click', () => {
+            let correct = true;
+            let feedbackMessage = '';
+
+            categories.forEach(category => {
+                const categoryName = category.getAttribute('data-category');
+                const expectedWords = correctAnswers[categoryName] || [];
+                const actualWords = Array.from(category.children)
+                    .filter(child => child.classList.contains('word'))
+                    .map(word => word.textContent);
+
+                const missingWords = expectedWords.filter(word => !actualWords.includes(word));
+                const extraWords = actualWords.filter(word => !expectedWords.includes(word));
+
+                if (missingWords.length > 0 || extraWords.length > 0) {
+                    correct = false;
+                    feedbackMessage += `<p><strong>${categoryName}:</strong> <br>
+                    <span style="color:red;">Fout.</span><br> 
+                    Verwacht: ${expectedWords.join(', ')}<br> 
+                    Gevonden: ${actualWords.join(', ') || 'Geen'}</p>`;
+                }
+            });
+
+            feedback.innerHTML = correct 
+                ? `<p><span style="color:green;">Alle antwoorden zijn correct! 🎉</span></p>`
+                : feedbackMessage;
+
+            feedback.classList.toggle('correct', correct);
+            feedback.style.display = 'block';
+        });
+    </script>
+</body>
+</html>
